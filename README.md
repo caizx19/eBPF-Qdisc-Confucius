@@ -9,3 +9,21 @@ This repository implements the Confucius queueing discipline presented in Meng's
 
 ## Tests
 Due to the lack of a dedicated testbed, this eBPF Confucius Qdisc has only been attached to the NIC and can successfully schedule traffic, but its core functions, such as smooth weight shifting and periodic detection of flow queue occupancy, have not been fully tested.
+
+## How to Apply
+1. Clone and Patch Kernel:
+   ```bash
+   git clone [https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf-next.git](https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf-next.git)
+   cd bpf-next
+   git checkout 8efa26fcbf8a7f783fd1ce7dd2a409e9b7758df0
+   git am ../kernel-patches/0001-bpf-net-Implement-eBPF-based-Asynchronous-Traffic-Sh.patch
+2. Compile, Register and attach eBPF programs:
+   ```bash
+   cd tools/testing/selftests/bpf/
+   make
+   sudo bpftool struct_ops register bpf_qdisc_ats.o /sys/fs/bpf
+   sudo tc qdisc add dev eth0 root handle 1:0 bpf_ats
+3. Remove and unregister:
+   ```bash
+   sudo tc qdisc delete dev eth0 root
+   sudo bpftool struct_ops unregister name bpf_ats
